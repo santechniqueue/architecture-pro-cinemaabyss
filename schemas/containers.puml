@@ -1,0 +1,119 @@
+@startuml
+
+top to bottom direction
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Cinema Abyss
+
+Person(User, "User", "A user of the Cinema Abyss system")
+Person(Admin, "Administrator", "Administrator of the Cinema Abyss system")
+
+System_Boundary(CinemaAbyss, "Cinema Abyss system") {
+
+    Container_Boundary(Frontend, "Client UI") {
+        Container(WebUI, "WEB", "JavaScript", "WEB interface")
+        Container(MobileUI, "Mobile", "Swift/Kotlin", "Android/iOS application")
+        Container(SmartTVUI, "SmartTV", "JavaScript", "SmartTV application")
+    }
+
+    Container_Boundary(AdminUI, "Admin panel UI") {
+        Container(AdminWebUI, "Admin WEB interface", "JavaScript", "WEB interface")
+        Container(AdminMobileUI, "Admin mobile interface", "Swift/Kotlin", "Android/iOS application")
+    }
+
+    Container_Boundary(UsersService, "Users service") {
+        Container(UsersServiceLayer, "Users service", "GO", "Users management")
+    }
+
+    Container_Boundary(Gateway, "Gateway") {
+        Container(NginxGateway, "API Gateway", "Nginx", "Proxying requests")
+        Container(ServiceMesh, "Service mesh", "Istio", "Services proxy")
+    }
+
+    Container_Boundary(PaymentService, "Payment service") {
+        Container(PaymentServiceLayer, "Payment service", "GO", "Payment processing")
+    }
+
+    Container_Boundary(AuthService, "Auth service") {
+        Container(AuthServiceLayer, "Auth service", "GO", "Auth service")
+    }
+
+    Container_Boundary(RecommendationService, "Recommendation service") {
+        Container(RecommendationServiceLayer, "Recommendation service", "Python", "Processes recommendation")
+    }
+
+    Container_Boundary(SubscriptionService, "Subscription service") {
+        Container(SubscriptionServiceLayer, "Subscription service", "Python", "Processes users subscriptions")
+    }
+
+    Container_Boundary(VideoService, "Video service") {
+        Container(VideoServiceLayer, "Video service", "GO", "Processes videos packages")
+    }
+
+    Container_Boundary(MoviesService, "Movies service") {
+        Container(MoviesServiceLayer, "Movies service", "Python", "Processes movies data")
+    }
+
+    Container_Boundary(EventsService, "Events service") {
+        Container(EventsServiceLayer, "EventsService service", "Python", "Processes events data")
+    }
+
+    Container(Kafka, "Kafka", "Services message queue")
+    Container(RabbitMQ, "RabbitMQ", "Recommendation message queue")
+    Container(S3, "S3 Storage", "Stores static")
+}
+
+Container_Ext(PaymentGateway, "Payment Gateway", "API", "External payment gateway system")
+Container_Ext(RecommendationSystem, "Recommendation system", "API", "External recommendation system")
+Container_Ext(OnlineCinemaSystem, "Online cinema system", "API", "External recommendation system")
+
+Rel(User, MobileUI, "Uses")
+Rel(User, WebUI, "Uses")
+Rel(User, SmartTVUI, "Uses")
+
+Rel(Admin, AdminWebUI, "Uses")
+Rel(Admin, AdminMobileUI, "Uses")
+
+Rel(MobileUI, NginxGateway, "API calls", "HTTPS")
+Rel(WebUI, NginxGateway, "API calls", "HTTPS")
+Rel(SmartTVUI, NginxGateway, "API calls", "HTTPS")
+Rel(AdminWebUI, NginxGateway, "API calls", "HTTPS")
+Rel(AdminMobileUI, NginxGateway, "API calls", "HTTPS")
+
+
+Rel(NginxGateway, ServiceMesh, "Proxying requests")
+Rel(NginxGateway, S3, "Processes static files packages")
+
+Rel(ServiceMesh, PaymentServiceLayer, "API calls", "HTTPS")
+Rel(ServiceMesh, AuthServiceLayer, "API calls", "HTTPS")
+Rel(ServiceMesh, UsersServiceLayer, "API calls", "HTTPS")
+Rel(ServiceMesh, RecommendationServiceLayer, "API calls", "HTTPS")
+Rel(ServiceMesh, SubscriptionServiceLayer, "API calls", "HTTPS")
+Rel(ServiceMesh, VideoServiceLayer, "API calls", "HTTPS")
+
+Rel(PaymentServiceLayer, PaymentGateway, "API calls", "HTTPS")
+Rel(PaymentServiceLayer, Kafka, "Publishes payment events")
+
+Rel(AuthServiceLayer, Kafka, "Publishes auth events")
+
+Rel(UsersServiceLayer, Kafka, "Publishes users events")
+
+Rel(RecommendationServiceLayer, RabbitMQ, "Publishes recommendations events")
+Rel_L(RecommendationServiceLayer, Kafka, "Publishes recommendations events")
+Rel_D(RabbitMQ, RecommendationSystem, "Exchanges data")
+
+Rel(SubscriptionServiceLayer, Kafka, "Publishes subscriptions events")
+
+Rel(MoviesServiceLayer, Kafka, "Publishes video events")
+
+Rel(VideoServiceLayer, Kafka, "Publishes video events")
+Rel(VideoServiceLayer, OnlineCinemaSystem, "API Calls")
+
+Rel(Kafka, EventsServiceLayer, "Reads events")
+
+
+
+
+
+@enduml

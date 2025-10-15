@@ -7,17 +7,16 @@ from fastapi.responses import Response
 app = FastAPI(title="Movies API Proxy", version="1.3.0")
 
 GRADUAL_MIGRATION = os.getenv('GRADUAL_MIGRATION')
-MOVIES_MIGRATION_PERCENT = int(os.getenv('MOVIES_MIGRATION_PERCENT'))  # expected valid int
+MOVIES_MIGRATION_PERCENT = int(os.getenv('MOVIES_MIGRATION_PERCENT'))
 MOVIES_SERVICE_URL = os.getenv('MOVIES_SERVICE_URL').rstrip("/")
 MONOLITH_URL = os.getenv('MONOLITH_URL').rstrip("/")
 
 
-def choose_backend():
-    if not GRADUAL_MIGRATION:
-        return MONOLITH_URL
-    roll = random.randint(0, 99)  # 0..99
-    if roll < MOVIES_MIGRATION_PERCENT:
-        return MOVIES_SERVICE_URL
+def choose_backend(path: str):
+    if path == "movies" and GRADUAL_MIGRATION:
+        roll = random.randint(0, 99)  # 0..99
+        if roll < MOVIES_MIGRATION_PERCENT:
+            return MOVIES_SERVICE_URL
     return MONOLITH_URL
 
 
@@ -26,10 +25,11 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/api/movies")
-def proxy_movies(request: Request):
-    base = choose_backend()
-    target_url = f"{base}/api/movies"
+@app.get("/api/{path}")
+def proxy_api(path: str, request: Request):
+    base = choose_backend(path)
+
+    target_url = f"{base}/api/{path}"
 
     outbound_headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
 

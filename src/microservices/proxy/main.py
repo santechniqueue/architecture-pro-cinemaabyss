@@ -21,20 +21,31 @@ def choose_backend(path: str):
 
 
 @app.get("/health")
-def health():
+async def health():
     return {"status": "ok"}
 
 
-@app.api_route("/api/{path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
-def proxy_api(path: str, request: Request):
+@app.api_route("/api/{path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+async def proxy_api(path: str, request: Request):
     base = choose_backend(path)
 
     target_url = f"{base}/api/{path}"
 
+    query_params = dict(request.query_params)
+
+    body = await request.body()
+
     outbound_headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
 
     try:
-        upstream = requests.get(target_url, headers=outbound_headers)
+        upstream = requests.request(
+            method=request.method,
+            url=target_url,
+            headers=outbound_headers,
+            params=query_params,          # <-- ключевая строка для ?id=...
+            data=body if body else None,
+            timeout=30,
+        )
     except requests.RequestException:
         return Response(content=b"Bad Gateway", status_code=502)
 

@@ -25,7 +25,7 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/api/{path}")
+@app.api_route("/api/{path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
 def proxy_api(path: str, request: Request):
     base = choose_backend(path)
 

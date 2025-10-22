@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	_ "bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -78,6 +80,48 @@ type KafkaHub struct {
 	writers map[string]*kafka.Writer
 	readers map[string]*kafka.Reader
 	closing chan struct{}
+}
+
+// truncate безопасно обрезает большие тела для логов
+func truncate(b []byte, max int) string {
+	if len(b) <= max {
+		return string(b)
+	}
+	return string(b[:max]) + "...(truncated)"
+}
+
+// RequestLogger логирует метод, путь, query, базовые заголовки и тело запроса.
+// Корректно "возвращает" тело обратно в c.Request.Body, чтобы хендлеры могли его читать.
+func RequestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+
+		// Считываем и восстанавливаем тело
+		body, _ := io.ReadAll(c.Request.Body)
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+		// Соберём информацию о запросе
+		method := c.Request.Method
+		path := c.Request.URL.Path
+		query := c.Request.URL.RawQuery
+		if query != "" {
+			path = path + "?" + query
+		}
+
+		ct := c.GetHeader("Content-Type")
+		ua := c.GetHeader("User-Agent")
+		xreq := c.GetHeader("X-Request-Id")
+
+		log.Printf(
+			"[http] incoming %s %s from=%s content-type=%q ua=%q x-request-id=%q body=%s",
+			method, path, c.ClientIP(), ct, ua, xreq, truncate(body, 4096),
+		)
+
+		c.Next()
+
+		log.Printf("[http] completed %s %s status=%d dur=%s",
+			method, path, c.Writer.Status(), time.Since(start))
+	}
 }
 
 func NewKafkaHub(brokersCSV string, topics []string) *KafkaHub {
@@ -180,6 +224,7 @@ func NewAPI(h *KafkaHub) *API { return &API{hub: h} }
 
 func (a *API) Router() *gin.Engine {
 	r := gin.Default()
+	r.Use(RequestLogger())
 	r.GET("/api/events/health", a.health)
 	r.POST("/api/events/movie", a.createMovieEvent)
 	r.POST("/api/events/user", a.createUserEvent)
@@ -208,6 +253,8 @@ func (a *API) createMovieEvent(c *gin.Context) {
 	}
 	resp := EventResponse{Status: "success", Partition: 0, Offset: 0, Event: ev}
 
+	log.Printf("[api] publishing topic=%s key=%s body=%s", topicMovie, "movie", truncate(raw, 4096))
+
 	if _, _, err := a.hub.Publish(c.Request.Context(), topicMovie, raw, "movie"); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -234,6 +281,8 @@ func (a *API) createUserEvent(c *gin.Context) {
 	}
 	resp := EventResponse{Status: "success", Partition: 0, Offset: 0, Event: ev}
 
+	log.Printf("[api] publishing topic=%s key=%s body=%s", topicUser, "user", truncate(raw, 4096))
+
 	if _, _, err := a.hub.Publish(c.Request.Context(), topicUser, raw, "user"); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -259,6 +308,8 @@ func (a *API) createPaymentEvent(c *gin.Context) {
 		Payload:   toMap(raw),
 	}
 	resp := EventResponse{Status: "success", Partition: 0, Offset: 0, Event: ev}
+
+	log.Printf("[api] publishing topic=%s key=%s body=%s", topicPayment, "payment", truncate(raw, 4096))
 
 	if _, _, err := a.hub.Publish(c.Request.Context(), topicPayment, raw, "payment"); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})

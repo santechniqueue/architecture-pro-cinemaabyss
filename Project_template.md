@@ -275,8 +275,16 @@ cat .docker/config.json | base64
   Часть тестов с health-чек упадет, но создание событий отработает.
   Откройте логи event-service и сделайте скриншот обработки событий
 
+[ссылка на скриншот логов с обработкой событий](img/3_events_consumed.png)
+
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+
+[Вывод по адресу https://cinemaabyss.example.com/api/movies](img/3_api_response.png)
+
+[Результат тестов в kubernetes 1 часть](img/3_kube_tests_1.png)
+
+[Результат тестов в kubernetes 2 часть](img/3_kube_tests_2.png)
 
 
 ## Задание 4

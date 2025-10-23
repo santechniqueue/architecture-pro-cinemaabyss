@@ -65,7 +65,7 @@ spec:
   selector:
     app: events-service
   ports:
-    - port: {{ .Values.eventsService.service.targetPort }}
+    - port: {{ .Values.eventsService.service.port }}
       targetPort: {{ .Values.eventsService.service.targetPort }}
   type: ClusterIP
 {{- end }}

@@ -65,6 +65,6 @@ spec:
   selector:
     app: proxy-service
   ports:
-    - port: {{ .Values.proxyService.service.targetPort }}
+    - port: {{ .Values.proxyService.service.port }}
       targetPort: {{ .Values.proxyService.service.targetPort }}
 {{- end }}

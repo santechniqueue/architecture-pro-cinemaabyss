@@ -55,7 +55,7 @@ monolith:
 # Proxy service configuration
 proxyService:
   enabled: true
-  name: proxy
+  name: proxy-service
   image:
     repository: ghcr.io/santechniqueue/architecture-pro-cinemaabyss/proxy-service
     tag: latest
@@ -76,7 +76,7 @@ proxyService:
 
 # Movies service configuration
 moviesService:
-  name: movies
+  name: movies-service
   enabled: true
   image:
     repository: ghcr.io/santechniqueue/architecture-pro-cinemaabyss/movies-service
@@ -98,7 +98,7 @@ moviesService:
 
 # Events service configuration
 eventsService:
-  name: events
+  name: events-service
   enabled: true
   image:
     repository: ghcr.io/santechniqueue/architecture-pro-cinemaabyss/events-service

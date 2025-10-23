@@ -361,6 +361,11 @@ minikube tunnel
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
 
+[Поды, развёрнутые через helm](img/4_helm_pods.png)
+
+[Список helm](img/4_helm_list.png)
+
+[Ответ от https://cinemaabyss.example.com/api/movies](img/4_api_response.png)
 
 # Задание 5
 Компания планирует активно развиваться и для повышения надежности, безопасности, реализации сетевых паттернов типа Circuit Breaker и канареечного деплоя вам как архитектору необходимо развернуть istio и настроить circuit breaker для monolith и movies сервисов.

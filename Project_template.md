@@ -5,7 +5,8 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+
+[ссылка на файл](schemas/containers.puml)
 
 
 ## Задание 2
@@ -59,6 +60,9 @@
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka http://localhost:8090 
 
+[Скриншот тестов](img/2_tests.png)
+
+[Скриншот топиков](img/2_kafka.png)
 
 ## Задание 3
 
@@ -271,8 +275,16 @@ cat .docker/config.json | base64
   Часть тестов с health-чек упадет, но создание событий отработает.
   Откройте логи event-service и сделайте скриншот обработки событий
 
+[ссылка на скриншот логов с обработкой событий](img/3_events_consumed.png)
+
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+
+[Вывод по адресу https://cinemaabyss.example.com/api/movies](img/3_api_response.png)
+
+[Результат тестов в kubernetes 1 часть](img/3_kube_tests_1.png)
+
+[Результат тестов в kubernetes 2 часть](img/3_kube_tests_2.png)
 
 
 ## Задание 4
@@ -349,6 +361,11 @@ minikube tunnel
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
 
+[Поды, развёрнутые через helm](img/4_helm_pods.png)
+
+[Список helm](img/4_helm_list.png)
+
+[Ответ от https://cinemaabyss.example.com/api/movies](img/4_api_response.png)
 
 # Задание 5
 Компания планирует активно развиваться и для повышения надежности, безопасности, реализации сетевых паттернов типа Circuit Breaker и канареечного деплоя вам как архитектору необходимо развернуть istio и настроить circuit breaker для monolith и movies сервисов.
@@ -414,6 +431,12 @@ You can see 21 for the upstream_rq_pending_overflow value which means 21 calls s
 ```
 
 Приложите скриншот работы circuit breaker'а
+
+[Результат работы CB 1 часть](img/5_cb_load_1.png)
+
+[Результат работы CB 2 часть](img/5_cb_load_2.png)
+
+[Статистика CB](img/5_cb_pending.png)
 
 Удаляем все
 ```bash

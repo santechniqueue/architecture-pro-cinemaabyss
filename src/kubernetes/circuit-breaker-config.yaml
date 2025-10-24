@@ -1,0 +1,84 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: monolith-cb
+  namespace: cinemaabyss
+spec:
+  host: monolith.cinemaabyss.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 1000
+        maxRequestsPerConnection: 100
+        idleTimeout: 30s
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 5
+      interval: 5s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 0
+
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: movies-cb
+  namespace: cinemaabyss
+spec:
+  host: movies-service.cinemaabyss.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 1000
+        maxRequestsPerConnection: 100
+        idleTimeout: 30s
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 5
+      interval: 5s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 0
+
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: monolith-upstream
+  namespace: cinemaabyss
+spec:
+  hosts:
+    - monolith.cinemaabyss.svc.cluster.local
+  http:
+    - timeout: 3s
+      retries:
+        attempts: 2
+        perTryTimeout: 1s
+        retryOn: "5xx,connect-failure,refused-stream,reset"
+      route:
+        - destination:
+            host: monolith.cinemaabyss.svc.cluster.local
+
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: movies-upstream
+  namespace: cinemaabyss
+spec:
+  hosts:
+    - movies-service.cinemaabyss.svc.cluster.local
+  http:
+    - timeout: 3s
+      retries:
+        attempts: 2
+        perTryTimeout: 1s
+        retryOn: "5xx,connect-failure,refused-stream,reset"
+      route:
+        - destination:
+            host: movies-service.cinemaabyss.svc.cluster.local
